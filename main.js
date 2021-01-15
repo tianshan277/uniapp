@@ -126,10 +126,11 @@ const downLoad = () => {
   return new Promise((resolve, reject) => {
     const stream = fs.createWriteStream(`/MyApp.zip`);
     const url = `${fileUrl}MyApp.zip`;
+    // url是下载的文件的地址,stream是覆盖的路径的地址
     console.log("url",url)
     request(url).pipe(stream).on('close', () => {
       // const unzip = new AdmZip(`./MyApp.zip`);   //下载压缩更新包
-      const unzip = new AdmZip(url);   //下载压缩更新包
+      const unzip = new AdmZip(`./MyApp.zip`);   //下载压缩更新包
       unzip.extractAllTo(`./`, /*overwrite*/true);   //解压替换本地文件
       resolve()
     });
