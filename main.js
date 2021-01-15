@@ -1,12 +1,16 @@
 const {app, BrowserWindow} = require('electron')
 const path = require('path')
 const url = require('url')
+var request = require('request');// 用于发起下载请求
+var fs = require('fs'); //用于扩展内置 fs 方法
+// var tar = require('tar');  // 用于执行 tar 解压缩
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
 let win
 
 function createWindow () {
+  console.log('本地版本号',app.getVersion())
   // Create the browser window.
   win = new BrowserWindow({width: 1200, height: 600})
 
@@ -18,7 +22,7 @@ function createWindow () {
   }))
 
   // Open the DevTools.
-  // win.webContents.openDevTools()
+  win.webContents.openDevTools()
 
   // Emitted when the window is closed.
   win.on('closed', () => {
@@ -27,6 +31,7 @@ function createWindow () {
     // when you should delete the corresponding element.
     win = null
   })
+  downloadFile("http://www.planwallpaper.com/static/images/butterfly-wallpaper.jpeg", "./butterfly-wallpaper.jpeg");
 }
 
 // This method will be called when Electron has finished
@@ -57,81 +62,38 @@ app.on('activate', () => {
 /**
  * 检测更新
  */
-// const baseUrl = "./";
-const baseUrl = "./resources/app/";
-const fileUrl = "http://pm72qibzx.bkt.clouddn.com/";//这里需要修改为自己的资源外网
-(function () {
-  return new Promise((resolve, reject) => {
-    request(
-      {
-        url: `${fileUrl}package.json?v=${new Date().getTime()}`,//请求package.json，与本地对比版本号
-      },
-      (error, res, body) => {
-        try {
-          if (error || res.statusCode !== 200) {
-            throw '更新版本号失败，请联系管理员';
-          }
-          const json = JSON.parse(body);
-          const { version, description } = json;
-          const localVersion = electron.app.getVersion();
-          // console.log(version, localVersion)
-          if (version != localVersion) {
-            mainWindow.webContents.send('updating', '更新中')
-            console.log('need update')
-            dialog.showMessageBox({
-              type: 'info',
-              title: '发现新版本',
-              message: '请点击按钮进行更新，预计持续几分钟，期间请不要操作，更新后会自动重启',
-              buttons: ['马上更新']
-            },
-              // (index) => {
-              //   if (index == 0) {
-              //     mainWindow.setProgressBar(0.5)
-              //   } else {
-              //   }
-              // }
-            )
-            mainWindow.setProgressBar(0.5);
-            downLoad()
-              .then(() => {
-                console.log('update success')
-                //重写版本号到本地
-                fs.readFile(`${baseUrl}package.json`, function (err, data) {
-                  if (err) {
-                    return console.error(err);
-                  }
-                  let newData = JSON.parse(data);
-                  newData.version = version;
-                  fs.writeFile(`${baseUrl}package.json`, JSON.stringify(newData), function (err) {
-                    if (err) {
-                      return console.error(err);
-                    }
-                    // 重启
-                    app.relaunch({ args: process.argv.slice(1) });
-                    app.exit(0);
-                  });
-                });
-              })
-          } else {
-            console.log('no update')
-          }
-        } catch (err) {
-          reject(err);
-        }
-      })
-  })
-})()
-/**
- * 更新
- */
-const downLoad = () => {
-  return new Promise((resolve, reject) => {
-    const stream = fs.createWriteStream(`${baseUrl}temp/dist.zip`);
-    const url = `${fileUrl}dist.zip?v=${new Date().getTime()}`;
-    request(url).pipe(stream).on('close', () => {
-      const unzip = new adm_zip(`${baseUrl}temp/dist.zip`);   //下载压缩更新包
-      unzip.extractAllTo(`${baseUrl}`, /*overwrite*/true);   //解压替换本地文件
-      resolve()
-    });
-  })
+function downloadFile(file_url , targetPath){
+  // Save variable to know progress
+  var received_bytes = 0;
+  var total_bytes = 0;
+
+  var req = request({
+    method: 'GET',
+    uri: file_url
+  });
+
+  var out = fs.createWriteStream(targetPath);
+  req.pipe(out);
+
+  req.on('response', function ( data ) {
+    // Change the total bytes value to get progress later.
+    total_bytes = parseInt(data.headers['content-length' ]);
+  });
+
+  req.on('data', function(chunk) {
+    // Update the received bytes
+    received_bytes += chunk.length;
+
+    showProgress(received_bytes, total_bytes);
+  });
+
+  req.on('end', function() {
+    console.log(333333,"File succesfully downloaded")
+    alert("File succesfully downloaded");
+  });
 }
+
+function showProgress(received,total){
+  var percentage = (received * 100) / total;
+  console.log(percentage + "% | " + received + " bytes out of " + total + " bytes.");
+}　　
