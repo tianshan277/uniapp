@@ -1,0 +1,10 @@
+{
+  "name"    : "app-name",
+  "version" : "0.1.0",
+  "main"    : "main.js",
+   "scripts": {
+          "test": "echo \"Error: no test specified\" && exit 1",
+          "start": "electron .",
+          "package": "electron-packager . MyApp --win --out MyApp --arch=x64 --electron-version 1.4.13 --overwrite --ignore=node_modules"
+        }
+}
