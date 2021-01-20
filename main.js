@@ -140,7 +140,7 @@ const fileUrl = "https://tianshan277.github.io/uniapp/";//这里需要修改为�
 const downLoad = () => {
   return new Promise((resolve, reject) => {
     let file_url=`${fileUrl}MyApp.zip`;
-    let targetPath='/MyApp.zip'
+    let targetPath='./MyApp.zip'
     let that = this;
     var received_bytes = 0;
     var total_bytes = 0;
@@ -154,7 +154,7 @@ const downLoad = () => {
       total_bytes = parseInt(data.headers["content-length"]);
     });
     req.on("data", function(chunk) {
-      console.log("111",chunk.length)
+      console.log("111",chunk.length,that)
       received_bytes += chunk.length;
       console.log("222",received_bytes,total_bytes)
       //下载进度
