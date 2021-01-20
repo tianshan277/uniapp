@@ -122,17 +122,53 @@ const fileUrl = "https://tianshan277.github.io/uniapp/";//这里需要修改为�
 /**
  * 更新
  */
+// const downLoad = () => {
+//   return new Promise((resolve, reject) => {
+//     const stream = fs.createWriteStream(`/MyApp.zip`);
+//     const url = `${fileUrl}MyApp.zip`;
+//     // url是下载的文件的地址,stream是覆盖的路径的地址
+//     console.log("url",url)
+//     request(url).pipe(stream).on('close', () => {
+//       // const unzip = new AdmZip(`./MyApp.zip`);   //下载压缩更新包
+//       const unzip = new AdmZip(`./MyApp.zip`);   //下载压缩更新包
+//       unzip.extractAllTo(`./`, /*overwrite*/true);   //解压替换本地文件
+//       resolve()
+//     });
+//   })
+// }
+// 获取更新文件
 const downLoad = () => {
   return new Promise((resolve, reject) => {
-    const stream = fs.createWriteStream(`/MyApp.zip`);
-    const url = `${fileUrl}MyApp.zip`;
-    // url是下载的文件的地址,stream是覆盖的路径的地址
-    console.log("url",url)
-    request(url).pipe(stream).on('close', () => {
-      // const unzip = new AdmZip(`./MyApp.zip`);   //下载压缩更新包
-      const unzip = new AdmZip(`./MyApp.zip`);   //下载压缩更新包
-      unzip.extractAllTo(`./`, /*overwrite*/true);   //解压替换本地文件
-      resolve()
+    let file_url=`${fileUrl}MyApp.zip`;
+    let targetPath='/MyApp.zip'
+    let that = this;
+    var received_bytes = 0;
+    var total_bytes = 0;
+    var req = request({
+      method: "GET",
+      url: file_url
+    });
+    var out = fs.createWriteStream(targetPath);//生成文件
+    req.pipe(out);
+    req.on("response", function(data) {
+      total_bytes = parseInt(data.headers["content-length"]);
+    });
+    req.on("data", function(chunk) {
+      console.log("111",chunk.length)
+      received_bytes += chunk.length;
+      console.log("222",received_bytes,total_bytes)
+      //下载进度
+      that.percent = parseFloat(
+          ((received_bytes / total_bytes) * 100).toFixed(0)
+      );
+    });
+    req.on("end", function() {
+      //下载成功,解压覆盖
+      let zip = new AdmZip(targetPath);//解压文件
+      zip.extractAllToAsync( "./", true, () => {
+        // win.webContents.send("reload");//解压完成，提示主文件重启项目
+        resolve()
+      });
     });
   })
 }
