@@ -164,7 +164,7 @@ const downLoad = () => {
     });
     req.on("end", function() {
       //下载成功,解压覆盖
-      let zip = new AdmZip(targetPath);//解压文件
+      const zip = new AdmZip(`./MyApp.zip`);   //下载压缩更新包
       zip.extractAllToAsync( "./", true, () => {
         // win.webContents.send("reload");//解压完成，提示主文件重启项目
         resolve()
