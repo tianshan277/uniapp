@@ -1,0 +1,5 @@
+{  
+    "status":1,//升级标志，1：需要升级；0：无需升级  
+    "note": "修复bug1；\n修复bug2;",//release notes  
+    "url": "https://tianshan277.github.io/uniapp/uniapp.apk" //更新包下载地址  
+}
